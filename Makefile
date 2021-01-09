@@ -1,83 +1,43 @@
-init.dev:
-	@make fmt.dev
-	@ENV=dev docker-compose run --rm terraform init
+.PHONY: $(shell egrep -o ^[a-zA-Z_-]+: $(MAKEFILE_LIST) | sed 's/://')
 
-plan.dev:
-	@make fmt.dev
-	@ENV=dev docker-compose run --rm terraform plan
+help: ## Print this help
+	@echo "Usage: make [target] env=[dev/stg/prd] (module=[terraform module])"
+	@echo
+	@echo 'Targets:'
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-apply.dev:
-	@make fmt.dev
-	@ENV=dev docker-compose run --rm terraform apply
+console: ## exec terraform console
+	@ENV=${env} docker-compose run --rm terraform console
 
-destroy.dev:
-	@make fmt.dev
-	@ENV=dev docker-compose run --rm terraform destroy
+validate: ## exec terraform validate
+	@ENV=${env} docker-compose run --rm terraform validate
 
-fmt.dev:
-	@ENV=dev docker-compose run --rm terraform fmt -recursive
+fmt: ## exec terraform fmt --recursive
+	@ENV=${env} docker-compose run --rm terraform fmt --recursive
 
-check.dev:
-	@make fmt.dev
-	@ENV=dev docker-compose run --rm terraform fmt -check
-	@ENV=dev docker-compose run --rm terraform validate
+init: ## exec terraform init
+	@ENV=${env} docker-compose run --rm terraform init
 
-console.dev:
-	@make fmt.dev
-	@ENV=dev docker-compose run --rm terraform console
+state-list: fmt validate ## exec terraform state list
+	@ENV=${env} docker-compose run --rm terraform state list
 
-init.stg:
-	@make fmt.stg
-	@ENV=stg docker-compose run --rm terraform init
+state-show: fmt validate ## exec terraform state show ${module}
+	@ENV=${env} docker-compose run --rm terraform state show ${module}
 
-plan.stg:
-	@make fmt.stg
-	@ENV=stg docker-compose run --rm terraform plan
+plan-all: fmt validate ## exec terraform plan
+	@ENV=${env} docker-compose run --rm terraform plan
 
-apply.stg:
-	@make fmt.stg
-	@ENV=stg docker-compose run --rm terraform apply
+plan-module: fmt validate ## exec terraform plan -target=module.${module_name}
+	@ENV=${env} docker-compose run --rm terraform plan -target=module.${module}
 
-destroy.stg:
-	@make fmt.stg
-	@ENV=stg docker-compose run --rm terraform destroy
+apply-all: fmt validate ## exec terraform apply --auto-approve
+	@ENV=${env} docker-compose run --rm terraform apply --auto-approve
 
-fmt.stg:
-	@ENV=stg docker-compose run --rm terraform fmt -recursive
+apply-module: fmt validate ## exec terraform apply -target=module.${module_name} --auto-approve
+	@ENV=${env} docker-compose run --rm terraform apply -target=module.${module} --auto-approve
 
-check.stg:
-	@make fmt.stg
-	@ENV=stg docker-compose run --rm terraform fmt -check
-	@ENV=stg docker-compose run --rm terraform validate
+destroy-all: fmt validate ## exec terraform destroy --auto-approve
+	@ENV=${env} docker-compose run --rm terraform destroy --auto-approve
 
-console.stg:
-	@make fmt.stg
-	@ENV=stg docker-compose run --rm terraform console
-
-init.prd:
-	@make fmt.prd
-	@ENV=prd docker-compose run --rm terraform init
-
-plan.prd:
-	@make fmt.prd
-	@ENV=prd docker-compose run --rm terraform plan
-
-apply.prd:
-	@make fmt.prd
-	@ENV=prd docker-compose run --rm terraform apply
-
-destroy.prd:
-	@make fmt.prd
-	@ENV=prd docker-compose run --rm terraform destroy
-
-fmt.prd:
-	@ENV=prd docker-compose run --rm terraform fmt -recursive
-
-check.prd:
-	@make fmt.prd
-	@ENV=prd docker-compose run --rm terraform fmt -check
-	@ENV=prd docker-compose run --rm terraform validate
-
-console.prd:
-	@make fmt.prd
-	@ENV=prd docker-compose run --rm terraform console
+destroy.module: fmt validate ## exec terraform destroy -target=module.${module_name} --auto-approve
+	@ENV=${env} docker-compose run --rm terraform destroy -target=module.${module} --auto-approve
