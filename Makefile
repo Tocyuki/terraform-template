@@ -6,6 +6,12 @@ help: ## Print this help
 	@echo 'Targets:'
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
+scan: ## exec driftctl scan --from
+	@ENV=${env} docker-compose run --rm driftctl scan
+
+lint: ## exec tflint
+	@ENV=${env} docker-compose run --rm tflint
+
 console: ## exec terraform console
 	@ENV=${env} docker-compose run --rm terraform console
 

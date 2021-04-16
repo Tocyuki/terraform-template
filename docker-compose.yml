@@ -1,5 +1,5 @@
 ---
-version: '3.6'
+version: '3.8'
 
 services:
   terraform:
@@ -8,4 +8,20 @@ services:
     volumes:
       - ./terraform/${ENV}:/terraform
     env_file: .env.${ENV}
+    working_dir: /terraform
+
+  driftctl:
+    image: cloudskiff/driftctl:v0.7.0
+    container_name: driftctl
+    volumes:
+      - ./terraform/${ENV}:/terraform
+    env_file: .env
+    working_dir: /terraform
+
+  tflint:
+    image: wata727/tflint
+    container_name: tflint
+    volumes:
+      - ./terraform/${ENV}:/terraform
+    env_file: .env
     working_dir: /terraform

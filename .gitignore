@@ -31,3 +31,6 @@ override.tf.json
 # Ignore environment file
 .env.*
 !.env.example
+
+# Ignore idea files
+.idea/
